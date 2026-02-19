@@ -1,0 +1,10 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+<MudDatePicker Label="MM/dd/yyyy" Editable="true" @bind-Date="_date2" Mask="@(new DateMask("MM/dd/yyyy"))" DateFormat="MM/dd/yyyy" Placeholder="en-US Date" Variant="Variant.Filled" />
+@code {
+    private DateTime? _date2 = new DateTime(2011, 1, 1);
+}

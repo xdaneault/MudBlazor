@@ -26,4 +26,5 @@
     <Project Path="MudBlazor.UnitTests/MudBlazor.UnitTests.csproj" />
   </Folder>
   <Project Path="MudBlazor/MudBlazor.csproj" />
+  <Project Path="MudBlazorTest/MudBlazorTest.csproj" />
 </Solution>
