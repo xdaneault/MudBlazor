@@ -2,9 +2,39 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudPaper Class="pa-4">
+    <MudDateRangePicker Label="Select a date range"
+                        @bind-DateRange="_dateRange"
+                        DateFormat="dd.MM.yyyy" />
+</MudPaper>
 
 <MudDatePicker Label="MM/dd/yyyy" Editable="true" @bind-Date="_date2" Mask="@(new DateMask("MM/dd/yyyy"))" DateFormat="MM/dd/yyyy" Placeholder="en-US Date" Variant="Variant.Filled" />
+
+<MudList @bind-SelectedValues="_myRoles" SelectionMode="SelectionMode.MultiSelection">
+    @foreach (MudRole item in Enum.GetValues(typeof(MudRole)))
+    {
+        <!-- This will show Admin selected: -->
+        <MudListItem Value="@item" Text="@item.ToString()"></MudListItem>
+    }
+</MudList>
+
+<MudList @bind-SelectedValues="_myRoles" SelectionMode="SelectionMode.MultiSelection">
+    @foreach (MudRole item in Enum.GetValues(typeof(MudRole)))
+    {
+        <!-- This will not show Admin selected: -->
+        <MudListItem Value="@item" Text="@item.ToString()" Disabled="true"></MudListItem>
+    }
+</MudList>
+
 @code {
-    private DateTime? _date2 = new DateTime(2011, 1, 1);
+    private DateRange _dateRange = new DateRange(DateTime.MinValue, DateTime.MinValue);
+    private DateTime? _date2;
+    public IReadOnlyCollection<MudRole> _myRoles = [MudRole.Admin];
+
+    public enum MudRole
+    {
+        Admin,
+        Superuser,
+        User
+    }
 }
