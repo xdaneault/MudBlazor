@@ -174,7 +174,7 @@ namespace MudBlazor
             get => _rangeText;
             set
             {
-                if (_rangeText?.Equals(value) ?? value == null)
+                if (_rangeText?.Equals(value) ?? (value == null))
                     return;
 
                 Touched = true;
@@ -430,6 +430,8 @@ namespace MudBlazor
 
         protected override async Task OnDayClickedAsync(DateTime dateTime)
         {
+            if (GetReadOnlyState())
+                return;
             if (_firstDate == null || _secondDate != null)
             {
                 _secondDate = null;
