@@ -2,6 +2,27 @@
 
 <PageTitle>Home</PageTitle>
 
+@* Fix #12171 - MudSelect: Does not show validation error on focus loss *@
+<MudPaper Class="pa-4 mb-4">
+    <MudText Typo="Typo.h6" Class="mb-3">Fix #12171 — MudSelect validation on blur</MudText>
+    <MudText Typo="Typo.body2" Class="mb-3">
+        Tab through the fields without selecting anything. Both should show a red "Required" error after losing focus.
+    </MudText>
+    <MudForm>
+        <MudStack Row Spacing="3">
+            <MudSelect T="string" @bind-Value="_car" Label="Car (MudSelect)" Required="true" RequiredError="Required" Style="min-width:200px">
+                <MudSelectItem T="string" Value="@("Toyota")">Toyota</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Honda")">Honda</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Ford")">Ford</MudSelectItem>
+            </MudSelect>
+            <MudTextField @bind-Value="_name" Label="Name (MudTextField)" Required="true" RequiredError="Required" />
+        </MudStack>
+        <MudText Typo="Typo.caption" Class="mt-2">
+            Car selected: @(_car ?? "none") | Name: @(_name ?? "none")
+        </MudText>
+    </MudForm>
+</MudPaper>
+
 <MudPaper Class="pa-4">
     <MudDateRangePicker Label="Select a date range"
                         @bind-DateRange="_dateRange"
@@ -37,4 +58,8 @@
         Superuser,
         User
     }
+    
+    // Fix #12171
+    private string? _car;
+    private string? _name;
 }
