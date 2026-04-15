@@ -142,7 +142,7 @@ J’ai toutefois dû retravailler ma PR à la suite de commentaires des maintain
 - Une typo s’était glissée dans mon correctif.
 - J’ai appliqué certaines suggestions proposées par Copilot et validées par les maintainers.
 
-## 4e issue (PR : en cours, Issue : #12171)
+## 4e issue (PR : #13030, Issue : #12171) (En attente de merge)
 
 ### Description
 
