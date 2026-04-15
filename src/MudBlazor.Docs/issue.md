@@ -160,13 +160,18 @@ Deuxièmement, l’événement qui capture réellement la perte de focus du comp
 
 Le correctif consiste donc à appeler `OnBlurredAsync` dans `OnFocusOutAsync` lorsque le menu est fermé, ce qui met correctement `Touched` à `true` et déclenche la validation sur l’instance de `MudSelect`.
 
+À la suite des suggestions de Copilot validées par les maintainers, deux ajustements ont été apportés :
+
+- La signature de `OnFocusOutAsync` a été modifiée pour accepter un paramètre `FocusEventArgs args`, provenant directement de la directive `@onfocusout`. Ce paramètre est ensuite transmis à `OnBlurredAsync(args)` au lieu d’instancier un `new FocusEventArgs()` vide, ce qui préserve les données réelles de l’événement (notamment la propriété `Type`).
+- Dans le test, le sélecteur générique `"div.mud-select"` a été remplacé par `$"#{select.ElementId}"` afin de cibler précisément l’élément via son `id`, rendant le test plus robuste aux changements de markup futurs.
+
 ### Test ajouté
 
 J’ai ajouté un test dans la classe `SelectTests` nommé :
 
 `Select_Required_Should_ShowValidationError_OnFocusOut`
 
-Ce test déclenche l’événement `onfocusout` sur le div extérieur du composant et vérifie que :
+Ce test déclenche l’événement `onfocusout` sur le div extérieur du composant (ciblé par `ElementId`) et vérifie que :
 
 - `Touched` passe à `true` ;
 - `HasErrors` passe à `true` ;
@@ -179,4 +184,6 @@ Cette issue m’a demandé une investigation approfondie, car le bug n’était 
 Ma première tentative consistait à modifier la méthode `OnBlurAsync` pour qu’elle appelle `OnBlurredAsync` au lieu d’invoquer directement le callback utilisateur. Cette modification faisait passer le test unitaire, mais n’avait aucun effet visuel, car `OnBlurAsync` n’est en réalité jamais appelée dans un scénario réel : le `ReadOnly="true"` sur le `MudInput` empêche le flow d’y arriver.
 
 J’ai donc dû remonter la chaîne d’événements pour comprendre quel mécanisme capturait réellement la perte de focus, et c’est là que j’ai découvert le rôle de `@onfocusout` et de `OnFocusOutAsync`.
+
+J’ai également dû retravailler ma PR à la suite des suggestions de Copilot validées par les maintainers, tel que décrit dans la section Solution ci-dessus.
 
