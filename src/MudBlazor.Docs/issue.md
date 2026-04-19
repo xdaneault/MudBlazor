@@ -142,3 +142,48 @@ J’ai toutefois dû retravailler ma PR à la suite de commentaires des maintain
 - Une typo s’était glissée dans mon correctif.
 - J’ai appliqué certaines suggestions proposées par Copilot et validées par les maintainers.
 
+## 4e issue (PR : #13030, Issue : #12171) (En attente de merge)
+
+### Description
+
+Cette quatrième issue consistait à régler un bug de validation dans le composant `MudSelect`. Lorsqu’un `MudSelect` avec `Required="true"` était placé dans un `MudForm`, quitter le champ sans sélectionner de valeur n’affichait pas la bordure rouge ni le message d’erreur, contrairement au composant `MudTextField` qui se comportait correctement dans le même scénario.
+
+La logique de validation fonctionnait tout de même en arrière-plan : la propriété `IsValid` du formulaire se mettait bien à jour à `false`, mais l’interface ne reflétait pas cet état.
+
+### Solution
+
+Après investigation, j’ai découvert que le problème venait de deux causes imbriquées.
+
+Premièrement, le `MudInput` rendu à l’intérieur du `MudSelect` est configuré avec `ReadOnly="true"`. Or, la méthode `OnBlurredAsync` de `MudBaseInput` contient un guard `if (ReadOnly) return;` qui fait en sorte qu’elle retourne immédiatement sans jamais déclencher la validation ni invoquer le callback `OnBlur` du `MudSelect`.
+
+Deuxièmement, l’événement qui capture réellement la perte de focus du composant est `@onfocusout` sur le div extérieur, géré par la méthode `OnFocusOutAsync`. Cette méthode ne traitait que le cas où le menu déroulant était ouvert (en redonnant le focus pour conserver la navigation au clavier dans le cas du multi-sélect), et ne faisait rien lorsque le menu était fermé.
+
+Le correctif consiste donc à appeler `OnBlurredAsync` dans `OnFocusOutAsync` lorsque le menu est fermé, ce qui met correctement `Touched` à `true` et déclenche la validation sur l’instance de `MudSelect`.
+
+À la suite des suggestions de Copilot validées par les maintainers, deux ajustements ont été apportés :
+
+- La signature de `OnFocusOutAsync` a été modifiée pour accepter un paramètre `FocusEventArgs args`, provenant directement de la directive `@onfocusout`. Ce paramètre est ensuite transmis à `OnBlurredAsync(args)` au lieu d’instancier un `new FocusEventArgs()` vide, ce qui préserve les données réelles de l’événement (notamment la propriété `Type`).
+- Dans le test, le sélecteur générique `"div.mud-select"` a été remplacé par `$"#{select.ElementId}"` afin de cibler précisément l’élément via son `id`, rendant le test plus robuste aux changements de markup futurs.
+
+### Test ajouté
+
+J’ai ajouté un test dans la classe `SelectTests` nommé :
+
+`Select_Required_Should_ShowValidationError_OnFocusOut`
+
+Ce test déclenche l’événement `onfocusout` sur le div extérieur du composant (ciblé par `ElementId`) et vérifie que :
+
+- `Touched` passe à `true` ;
+- `HasErrors` passe à `true` ;
+- `ValidationErrors` contient le message `"Required"`.
+
+### Difficultés rencontrées
+
+Cette issue m’a demandé une investigation approfondie, car le bug n’était pas là où je l’attendais.
+
+Ma première tentative consistait à modifier la méthode `OnBlurAsync` pour qu’elle appelle `OnBlurredAsync` au lieu d’invoquer directement le callback utilisateur. Cette modification faisait passer le test unitaire, mais n’avait aucun effet visuel, car `OnBlurAsync` n’est en réalité jamais appelée dans un scénario réel : le `ReadOnly="true"` sur le `MudInput` empêche le flow d’y arriver.
+
+J’ai donc dû remonter la chaîne d’événements pour comprendre quel mécanisme capturait réellement la perte de focus, et c’est là que j’ai découvert le rôle de `@onfocusout` et de `OnFocusOutAsync`.
+
+J’ai également dû retravailler ma PR à la suite des suggestions de Copilot validées par les maintainers, tel que décrit dans la section Solution ci-dessus.
+
