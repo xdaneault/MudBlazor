@@ -26,6 +26,50 @@
     }
 </MudList>
 
+<MudGrid>
+
+    <MudItem xs="12">
+        <MudStack Row="true" Class="mt-3 mb-3">
+            <MudButton OnClick="SetDate" Variant="Variant.Filled">Set Date</MudButton>
+            <MudButton OnClick="Clear1" Variant="Variant.Filled">Clear 1</MudButton>
+            <MudButton OnClick="Clear2" Variant="Variant.Filled">Clear 2</MudButton>
+            <MudButton OnClick="Clear3" Variant="Variant.Filled">Clear 3</MudButton>
+        </MudStack>
+    </MudItem>
+
+    <MudItem xs="6" Class="pt-1">
+        <MudDatePicker @ref="_txtBirthDate"
+                       Date="_inputDateTime"
+                       DateChanged="OnBirthDateChanged"
+                       Mask="DateMask"
+                       AutoClose="true"
+                       Label="With Mask">
+            <PickerActions>
+                <MudButton Class="align-self-start mr-auto" OnClick="Clear1">Limpar</MudButton>
+            </PickerActions>
+        </MudDatePicker>
+    </MudItem>
+
+    <MudItem xs="6" Class="d-flex align-center pt-1">
+        @if (_inputDateTime.HasValue)
+        {
+            <MudText>@_inputDateTime</MudText>
+        }
+    </MudItem>
+
+    <MudItem xs="6" Class="pt-1">
+        <MudDatePicker @ref="_txtBirthDate"
+                       Date="_inputDateTime"
+                       DateChanged="OnBirthDateChanged"
+                       AutoClose="true"
+                       Label="Without Mask">
+            <PickerActions>
+                <MudButton Class="align-self-start mr-auto" OnClick="Clear1">Limpar</MudButton>
+            </PickerActions>
+        </MudDatePicker>
+    </MudItem>
+</MudGrid>
+
 @code {
     private DateRange _dateRange = new DateRange(DateTime.MinValue, DateTime.MinValue);
     private DateTime? _date2;
@@ -36,5 +80,46 @@
         Admin,
         Superuser,
         User
+    }
+    
+    private static readonly DateMask DateMask = new DateMask("dd/MM/yyyy");
+
+    private MudDatePicker _txtBirthDate = null!;
+    private OpenTo _openTo;
+    private DateTime? _inputDateTime;
+    private int _changeCount;
+
+    protected override void OnInitialized() 
+    {
+        _inputDateTime = DateTime.UtcNow;
+        _changeCount = 0;
+    }
+
+    private void OnBirthDateChanged(DateTime? date)
+    {
+        _inputDateTime = date;
+        _openTo = _inputDateTime.HasValue ? OpenTo.Date : OpenTo.Year;
+    }
+
+    private void SetDate()
+    {
+        _changeCount++;
+        _inputDateTime = DateTime.UtcNow.AddDays(-_changeCount);
+    }
+
+    private async Task Clear1()
+    {
+        _inputDateTime = null;
+        await _txtBirthDate.CloseAsync();
+    }
+
+    private void Clear2()
+    {
+        _inputDateTime = null;
+    }
+
+    private async Task Clear3()
+    {
+        await _txtBirthDate.ClearAsync();
     }
 }
