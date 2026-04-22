@@ -23,29 +23,56 @@
     </MudForm>
 </MudPaper>
 
-<MudPaper Class="pa-4">
+<MudPaper Class="pa-4 mb-4">
+    @* Fix #11246 - MudDateRangePicker: throws exception when initialized with DateTime.MinValue *@
+    <MudText Typo="Typo.h6" Class="mb-3">Fix #11246 — MudDateRangePicker initialisé avec DateTime.MinValue</MudText>
+    <MudText Typo="Typo.body2" Class="mb-3">
+        Le composant est initialisé avec <code>DateTime.MinValue</code> des deux côtés. Sans le fix, une exception était lancée au démarrage.
+    </MudText>
     <MudDateRangePicker Label="Select a date range"
                         @bind-DateRange="_dateRange"
                         DateFormat="dd.MM.yyyy" />
 </MudPaper>
 
-<MudDatePicker Label="MM/dd/yyyy" Editable="true" @bind-Date="_date2" Mask="@(new DateMask("MM/dd/yyyy"))" DateFormat="MM/dd/yyyy" Placeholder="en-US Date" Variant="Variant.Filled" />
+@* Fix #12336 - MudDatePicker: validation error persists after quickly erasing an invalid date *@
+<MudPaper Class="pa-4 mb-4">
+    <MudText Typo="Typo.h6" Class="mb-3">Fix #12336 — MudDatePicker : erreur de validation persistante après effacement rapide</MudText>
+    <MudText Typo="Typo.body2" Class="mb-3">
+        Entrez une date invalide (ex. : <code>abc</code>), puis effacez rapidement le champ. L'erreur de conversion devrait disparaître.
+    </MudText>
+    <MudDatePicker Label="Date (éditable)" Editable="true" @bind-Date="_date2" Variant="Variant.Outlined" />
+    <MudText Typo="Typo.caption" Class="mt-2">
+        Date sélectionnée : @(_date2?.ToString("yyyy-MM-dd") ?? "aucune")
+    </MudText>
+</MudPaper>
 
-<MudList @bind-SelectedValues="_myRoles" SelectionMode="SelectionMode.MultiSelection">
-    @foreach (MudRole item in Enum.GetValues(typeof(MudRole)))
-    {
-        <!-- This will show Admin selected: -->
-        <MudListItem Value="@item" Text="@item.ToString()"></MudListItem>
-    }
-</MudList>
-
-<MudList @bind-SelectedValues="_myRoles" SelectionMode="SelectionMode.MultiSelection">
-    @foreach (MudRole item in Enum.GetValues(typeof(MudRole)))
-    {
-        <!-- This will not show Admin selected: -->
-        <MudListItem Value="@item" Text="@item.ToString()" Disabled="true"></MudListItem>
-    }
-</MudList>
+@* Fix #10291 - MudList: disabled items don't display selected state in MultiSelection *@
+<MudPaper Class="pa-4 mb-4">
+    <MudText Typo="Typo.h6" Class="mb-3">Fix #10291 — MudList MultiSelection : état sélectionné sur items désactivés</MudText>
+    <MudText Typo="Typo.body2" Class="mb-3">
+        Les deux listes ci-dessous ont <code>Admin</code> dans <code>SelectedValues</code>. La liste du haut affiche le checkmark normalement. Après le fix, la liste du bas (items désactivés) affiche aussi le checkmark sur <code>Admin</code>.
+    </MudText>
+    <MudStack Row Spacing="4">
+        <div>
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Items actifs (comportement normal)</MudText>
+            <MudList @bind-SelectedValues="_myRoles" SelectionMode="SelectionMode.MultiSelection">
+                @foreach (MudRole item in Enum.GetValues(typeof(MudRole)))
+                {
+                    <MudListItem Value="@item" Text="@item.ToString()"></MudListItem>
+                }
+            </MudList>
+        </div>
+        <div>
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Items désactivés (fix appliqué : Admin coché)</MudText>
+            <MudList @bind-SelectedValues="_myRoles" SelectionMode="SelectionMode.MultiSelection">
+                @foreach (MudRole item in Enum.GetValues(typeof(MudRole)))
+                {
+                    <MudListItem Value="@item" Text="@item.ToString()" Disabled="true"></MudListItem>
+                }
+            </MudList>
+        </div>
+    </MudStack>
+</MudPaper>
 
 @code {
     private DateRange _dateRange = new DateRange(DateTime.MinValue, DateTime.MinValue);

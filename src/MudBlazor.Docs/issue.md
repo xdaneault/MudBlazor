@@ -142,7 +142,7 @@ J’ai toutefois dû retravailler ma PR à la suite de commentaires des maintain
 - Une typo s’était glissée dans mon correctif.
 - J’ai appliqué certaines suggestions proposées par Copilot et validées par les maintainers.
 
-## 4e issue (PR : #13030, Issue : #12171) (En attente de merge)
+## 4e issue (PR : #13039, Issue : #12171) (Merged)
 
 ### Description
 
@@ -160,9 +160,10 @@ Deuxièmement, l’événement qui capture réellement la perte de focus du comp
 
 Le correctif consiste donc à appeler `OnBlurredAsync` dans `OnFocusOutAsync` lorsque le menu est fermé, ce qui met correctement `Touched` à `true` et déclenche la validation sur l’instance de `MudSelect`.
 
-À la suite des suggestions de Copilot validées par les maintainers, deux ajustements ont été apportés :
+À la suite des suggestions de Copilot validées par les maintainers, trois ajustements ont été apportés :
 
 - La signature de `OnFocusOutAsync` a été modifiée pour accepter un paramètre `FocusEventArgs args`, provenant directement de la directive `@onfocusout`. Ce paramètre est ensuite transmis à `OnBlurredAsync(args)` au lieu d’instancier un `new FocusEventArgs()` vide, ce qui préserve les données réelles de l’événement (notamment la propriété `Type`).
+- La méthode `OnBlurAsync` a été modifiée pour appeler `OnBlurredAsync(obj)` au lieu d’invoquer directement `base.OnBlur.InvokeAsync(obj)`. Ce changement unifie le point d’entrée de la validation et évite un double déclenchement du callback de blur.
 - Dans le test, le sélecteur générique `"div.mud-select"` a été remplacé par `$"#{select.ElementId}"` afin de cibler précisément l’élément via son `id`, rendant le test plus robuste aux changements de markup futurs.
 
 ### Test ajouté
