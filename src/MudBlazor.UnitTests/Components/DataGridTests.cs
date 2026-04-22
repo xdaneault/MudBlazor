@@ -2077,6 +2077,40 @@ namespace MudBlazor.UnitTests.Components
 
             #endregion
 
+            #region FilterOperator.Enum.Empty
+
+            filterDefinition = new FilterDefinition<DataGridFiltersTest.Model>
+            {
+                Column = statusColumn,
+                Operator = FilterOperator.Enum.Empty
+            };
+            func = filterDefinition.GenerateFilterFunction(new FilterOptions
+            {
+                FilterCaseSensitivity = dataGrid.Instance.FilterCaseSensitivity
+            });
+            func.Invoke(new("Sam", 456, Severity.Normal, null, null, null, null)).Should().BeFalse();
+            func.Invoke(new("Joe", 45, Severity.Info, null, null, null, null)).Should().BeFalse();
+            func.Invoke(new("Joe", 45, null, null, null, null, null)).Should().BeTrue();
+
+            #endregion
+
+            #region FilterOperator.Enum.NotEmpty
+
+            filterDefinition = new FilterDefinition<DataGridFiltersTest.Model>
+            {
+                Column = statusColumn,
+                Operator = FilterOperator.Enum.NotEmpty
+            };
+            func = filterDefinition.GenerateFilterFunction(new FilterOptions
+            {
+                FilterCaseSensitivity = dataGrid.Instance.FilterCaseSensitivity
+            });
+            func.Invoke(new("Sam", 456, Severity.Normal, null, null, null, null)).Should().BeTrue();
+            func.Invoke(new("Joe", 45, Severity.Info, null, null, null, null)).Should().BeTrue();
+            func.Invoke(new("Joe", 45, null, null, null, null, null)).Should().BeFalse();
+
+            #endregion
+
             // null operator
             filterDefinition = new FilterDefinition<DataGridFiltersTest.Model>
             {
@@ -3904,6 +3938,41 @@ namespace MudBlazor.UnitTests.Components
         }
 
         [Test]
+        public async Task DataGridColumnPopupFilteringEnterAppliesFilter()
+        {
+            var comp = Context.Render<DataGridColumnPopupFilteringTest>();
+            var dataGrid = comp.FindComponent<MudDataGrid<DataGridColumnPopupFilteringTest.Model>>();
+            await comp.Find(".filter-button").ClickAsync();
+            var input = comp.FindComponent<MudTextField<string>>();
+            await input.Find("input").InputAsync("Sam");
+            await input.Find("input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter", Type = "keydown" });
+
+            await comp.WaitForAssertionAsync(() =>
+            {
+                dataGrid.Instance.FilterDefinitions.Should().ContainSingle();
+                dataGrid.FindAll("tbody tr").Count.Should().Be(1);
+            });
+        }
+
+        [Test]
+        public async Task DataGridColumnPopupFilteringEscapeClearsFilter()
+        {
+            var comp = Context.Render<DataGridColumnPopupFilteringTest>();
+            var dataGrid = comp.FindComponent<MudDataGrid<DataGridColumnPopupFilteringTest.Model>>();
+            await comp.Find(".filter-button").ClickAsync();
+            var input = comp.FindComponent<MudTextField<string>>();
+            await input.Find("input").InputAsync("Sam");
+            await input.Find("input").KeyDownAsync(new KeyboardEventArgs { Key = "Escape", Type = "keydown" });
+
+            await comp.WaitForAssertionAsync(() =>
+            {
+                dataGrid.Instance.FilterDefinitions.Should().BeEmpty();
+                comp.FindAll(".column-filter-popup.mud-popover-open").Should().BeEmpty();
+                dataGrid.FindAll("tbody tr").Count.Should().Be(4);
+            });
+        }
+
+        [Test]
         public void DataGridColumnShowFilterIcons()
         {
             var comp = Context.Render<DataGridColumnShowFilterIconsTest>();
@@ -4956,6 +5025,27 @@ namespace MudBlazor.UnitTests.Components
 #pragma warning restore BL0005
             await comp.Find(".mud-switch-input").ChangeAsync(new ChangeEventArgs { Value = true });
             comp.FindAll("tbody.mud-table-body td")[3].TextContent.Should().Be("$87,000");
+        }
+
+        [Test]
+        public void DataGridPropertyColumnFormat_IsAppliedToBuiltInNumericEditorInCellEditMode()
+        {
+            var comp = Context.Render<DataGridEditFormatTest>();
+
+            comp.FindAll("td input")[1].GetAttribute("value").Should().Be("4.00");
+            comp.FindAll("td input")[3].GetAttribute("value").Should().Be("6.94");
+            comp.FindAll("td input")[5].GetAttribute("value").Should().Be("9.01");
+        }
+
+        [Test]
+        public async Task DataGridPropertyColumnFormat_IsAppliedToBuiltInNumericEditorInFormEditMode()
+        {
+            var comp = Context.Render<DataGridEditFormatTest>(parameters => parameters
+                .Add(x => x.EditMode, DataGridEditMode.Form));
+
+            await comp.FindAll("tbody tr")[1].ClickAsync();
+
+            comp.FindAll("div input")[1].GetAttribute("value").Should().Be("6.94");
         }
 
         [Test]
@@ -6488,6 +6578,31 @@ namespace MudBlazor.UnitTests.Components
                 comp.Markup.Should().Contain("test_grid_filter_filled_icon");
                 comp.Markup.Should().Contain("test_grid_filter_clear_icon");
             });
+        }
+
+        [Test]
+        public async Task DataGridFilterTemplateUsesContextFilterIcon()
+        {
+            var comp = Context.Render<DataGridFilterIconsTest>(parameters =>
+                parameters.Add(x => x.FilterMode, DataGridFilterMode.ColumnFilterRow));
+            var dataGrid = comp.FindComponent<MudDataGrid<DataGridFilterIconsTest.Model>>();
+
+            MudIconButton CustomFilterButton() =>
+                comp.FindComponents<MudIconButton>()
+                    .First(x => x.Markup.Contains("custom-filter-template-button"))
+                    .Instance;
+
+            CustomFilterButton().Icon.Should().Be("test_grid_filter_empty_icon");
+
+            await comp.InvokeAsync(() => dataGrid.Instance.AddFilterAsync(new FilterDefinition<DataGridFilterIconsTest.Model>
+            {
+                Column = dataGrid.Instance.RenderedColumns.First(),
+                Operator = FilterOperator.String.Contains,
+                Value = "Sam"
+            }));
+
+            await comp.WaitForAssertionAsync(() =>
+                CustomFilterButton().Icon.Should().Be("test_grid_filter_filled_icon"));
         }
 
         #region Selection Cleanup Tests (ObservableCollection)
